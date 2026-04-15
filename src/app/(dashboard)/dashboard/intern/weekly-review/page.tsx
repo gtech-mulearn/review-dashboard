@@ -36,8 +36,8 @@ type FormValues = {
   fullName: string;
   muid: string;
   team: string;
-  worksAssigned: string;
-  worksCompleted: string;
+  tasksAssigned: string;
+  tasksCompleted: string;
   worksDone: string;
   hoursCommitted: string;
   blockers: string;
@@ -65,8 +65,8 @@ export default function WeeklyReviewPage() {
       fullName: userProfile?.fullName || "",
       muid: userProfile?.muid || "",
       team: "",
-      worksAssigned: "",
-      worksCompleted: "",
+      tasksAssigned: "",
+      tasksCompleted: "",
       worksDone: "",
       hoursCommitted: "",
       blockers: "",
@@ -205,14 +205,14 @@ export default function WeeklyReviewPage() {
               />
               <FormField
                 control={form.control}
-                name="worksAssigned"
+                name="tasksAssigned"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Works Assigned</FormLabel>
+                    <FormLabel>Tasks Assigned</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder="Enter works assigned..."
+                        placeholder="Enter tasks assigned..."
                         className="min-h-[80px] resize-none"
                       />
                     </FormControl>
@@ -222,14 +222,14 @@ export default function WeeklyReviewPage() {
               />
               <FormField
                 control={form.control}
-                name="worksCompleted"
+                name="tasksCompleted"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Works Completed</FormLabel>
+                    <FormLabel>Tasks Completed</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder="Enter works completed..."
+                        placeholder="Enter tasks completed..."
                         className="min-h-[80px] resize-none"
                       />
                     </FormControl>
