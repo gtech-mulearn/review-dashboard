@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DashboardHome } from "./dashboard-home";
 
 export const metadata: Metadata = {
   title: "Dashboard | μLearn",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return "This is dashboard";
+  return <DashboardHome />;
 }
