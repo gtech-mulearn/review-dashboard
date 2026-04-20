@@ -9,7 +9,7 @@
 import { cookies } from "next/headers";
 import type { z } from "zod";
 import { refreshAccessToken } from "@/features/auth/api/auth.api";
-import { env } from "../../config/env";
+import { env } from "@/lib/env";
 import { ApiError, extractDjangoMessage } from "./errors";
 
 // ─── URL + Headers ──────────────────────────────────────────────────────────

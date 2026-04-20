@@ -28,8 +28,7 @@ export {
   type RequestOTPRequest,
   RequestOTPRequestSchema,
   RequestOTPResponseSchema,
-  type UserProfile,
-  type UserProfileResponse,
-  UserProfileResponseSchema,
-  UserProfileSchema,
+  type UserInfo,
+  UserInfoResponseSchema,
+  UserInfoSchema,
 } from "./auth.schema";

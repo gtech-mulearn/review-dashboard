@@ -7,7 +7,7 @@
  */
 
 export {
-  fetchPublicUserProfile,
+  fetchUserInfo,
   loginWithOTP,
   loginWithPassword,
   refreshAccessToken,

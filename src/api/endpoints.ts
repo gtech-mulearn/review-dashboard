@@ -26,9 +26,7 @@ export const endpoints = {
   // User Endpoints
   // ============================================
   user: {
-    /** GET - Get public user profile */
-    publicProfile: (muid: string) =>
-      `/api/v1/dashboard/profile/user-profile/${muid}/`,
+    info: "/api/v1/dashboard/user/info/",
   },
 } as const;
 

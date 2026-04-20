@@ -13,11 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authStore, MANAGEMENT_ROLES, ROLES } from "@/lib/auth";
 import { useInternStore } from "@/stores/intern-store";
-import {
-  fetchPublicUserProfile,
-  loginWithOTP,
-  loginWithPassword,
-} from "../api";
+import { fetchUserInfo, loginWithOTP, loginWithPassword } from "../api";
 import { authKeys } from "./query-keys";
 
 interface LoginWithPasswordParams {
@@ -55,7 +51,7 @@ export function useLoginWithPassword() {
         emailOrMuid,
       );
 
-      const userInfo = await fetchPublicUserProfile(emailOrMuid);
+      const userInfo = await fetchUserInfo();
 
       if (!hasAllowedRole(userInfo.roles)) {
         authStore.clearTokens();
@@ -64,11 +60,14 @@ export function useLoginWithPassword() {
       }
 
       useInternStore.getState().setUserProfile({
-        fullName: userInfo.full_name,
+        full_name: userInfo.full_name,
         muid: userInfo.muid,
         roles: userInfo.roles,
-        collegeCode: userInfo.college_code,
-        profilePic: userInfo.profile_pic,
+        email: userInfo.email,
+        profile_pic: userInfo.profile_pic,
+        joined: userInfo.joined,
+        user_domains: userInfo.user_domains,
+        user_endgoals: userInfo.user_endgoals,
       });
 
       return {
@@ -76,12 +75,9 @@ export function useLoginWithPassword() {
         userInfo,
       };
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       queryClient.clear();
-      queryClient.setQueryData(
-        authKeys.publicProfile(variables.emailOrMuid),
-        data.userInfo,
-      );
+      queryClient.setQueryData(authKeys.userInfo(), data.userInfo);
     },
   });
 }
@@ -104,7 +100,7 @@ export function useLoginWithOTP() {
         emailOrMuid,
       );
 
-      const userInfo = await fetchPublicUserProfile(emailOrMuid);
+      const userInfo = await fetchUserInfo();
 
       if (!hasAllowedRole(userInfo.roles)) {
         authStore.clearTokens();
@@ -113,11 +109,14 @@ export function useLoginWithOTP() {
       }
 
       useInternStore.getState().setUserProfile({
-        fullName: userInfo.full_name,
+        full_name: userInfo.full_name,
         muid: userInfo.muid,
         roles: userInfo.roles,
-        collegeCode: userInfo.college_code,
-        profilePic: userInfo.profile_pic,
+        email: userInfo.email,
+        profile_pic: userInfo.profile_pic,
+        joined: userInfo.joined,
+        user_domains: userInfo.user_domains,
+        user_endgoals: userInfo.user_endgoals,
       });
 
       return {
@@ -125,12 +124,9 @@ export function useLoginWithOTP() {
         userInfo,
       };
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       queryClient.clear();
-      queryClient.setQueryData(
-        authKeys.publicProfile(variables.emailOrMuid),
-        data.userInfo,
-      );
+      queryClient.setQueryData(authKeys.userInfo(), data.userInfo);
     },
   });
 }

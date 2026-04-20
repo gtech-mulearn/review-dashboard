@@ -1,11 +1,5 @@
 import { AlertCircle, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface InlineErrorFallbackProps {
   error: unknown;
@@ -22,18 +16,10 @@ export function InlineErrorFallback({
     <div className="inline-flex items-center gap-2 p-2 rounded bg-destructive/10 text-destructive border border-destructive/20 text-sm">
       <AlertCircle className="w-4 h-4" />
       <span>Error</span>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="cursor-help underline decoration-dotted text-xs ml-1 opacity-80">
-              (details)
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="max-w-xs">{err.message}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <span className="cursor-help underline decoration-dotted text-xs ml-1 opacity-80">
+        (details)
+      </span>
+      <p className="max-w-xs">{err.message}</p>
       <Button
         onClick={resetErrorBoundary}
         variant="ghost"
