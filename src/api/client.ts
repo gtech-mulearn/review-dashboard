@@ -8,7 +8,7 @@
 import type { z } from "zod";
 import { refreshAccessToken } from "@/features/auth";
 import { useInternStore } from "@/stores/intern-store";
-import { env } from "../../config/env";
+import { env } from "../lib/env";
 import { authStore } from "../lib/auth";
 import { ApiError, extractDjangoMessage } from "./errors";
 

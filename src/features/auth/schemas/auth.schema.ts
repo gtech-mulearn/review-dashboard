@@ -93,27 +93,25 @@ export const KarmaDistributionSchema = z.object({
   karma: z.number(),
 });
 
-export const UserProfileSchema = z.object({
-  full_name: z.string(),
-  college_code: z.string().nullable(),
-  college_id: z.string().nullable(),
-  org_district_id: z.string().nullable(),
-  interest_groups: z.array(InterestGroupSchema),
-  karma_distribution: z.array(KarmaDistributionSchema),
-  gender: z.string().nullable(),
-  id: z.string(),
-  joined: z.string(),
-  karma: z.number(),
-  rank: z.number(),
+export const UserInfoSchema = z.object({
   muid: z.string(),
-  level: z.string(),
-  profile_pic: z.string().nullable(),
-  is_public: z.boolean(),
-  percentile: z.number(),
+  full_name: z.string(),
+  email: z.string().email(),
+  mobile: z.string().nullable(),
+  gender: z.string().nullable(),
+  dob: z.string().nullable(),
+  joined: z.string(),
+  exist_in_guild: z.boolean(),
   roles: z.array(z.string()),
+  dynamic_type: z.array(z.string()).optional().default([]),
+  profile_pic: z.string().nullable(),
+  user_domains: z.array(z.string()),
+  user_endgoals: z.array(z.string()),
+  interested_in_work: z.boolean().optional(),
+  interested_in_gig_work: z.boolean().optional(),
 });
 
-export const UserProfileResponseSchema = ApiResponseSchema(UserProfileSchema);
+export const UserInfoResponseSchema = ApiResponseSchema(UserInfoSchema);
 
 // ============================================
 // Derived Types
@@ -128,7 +126,7 @@ export type RequestOTPRequest = z.infer<typeof RequestOTPRequestSchema>;
 export type RefreshTokenRequest = z.infer<typeof RefreshTokenRequestSchema>;
 export type RefreshTokenResponse = z.infer<typeof RefreshTokenResponseSchema>;
 
-export type UserProfile = z.infer<typeof UserProfileSchema>;
-export type UserProfileResponse = z.infer<typeof UserProfileResponseSchema>;
+export type UserInfo = z.infer<typeof UserInfoSchema>;
+export type UserInfoResponse = z.infer<typeof UserInfoResponseSchema>;
 export type InterestGroup = z.infer<typeof InterestGroupSchema>;
 export type KarmaDistribution = z.infer<typeof KarmaDistributionSchema>;

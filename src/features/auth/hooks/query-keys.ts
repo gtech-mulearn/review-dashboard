@@ -9,6 +9,5 @@
 
 export const authKeys = {
   all: ["auth"] as const,
-  publicProfile: (muid: string) =>
-    [...authKeys.all, "publicProfile", muid] as const,
+  userInfo: () => [...authKeys.all, "userInfo"] as const,
 };

@@ -11,11 +11,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface UserProfileData {
-  fullName: string;
+  full_name: string;
   muid: string;
   roles: string[];
-  collegeCode: string | null;
-  profilePic: string | null;
+  email: string | null;
+  profile_pic: string | null;
+  joined: string;
+  user_domains: string[];
+  user_endgoals: string[];
 }
 
 interface AuthState {

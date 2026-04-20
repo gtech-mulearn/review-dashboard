@@ -17,8 +17,8 @@ import {
   LoginResponseSchema,
   RefreshTokenResponseSchema,
   RequestOTPResponseSchema,
-  type UserProfile,
-  UserProfileResponseSchema,
+  type UserInfo,
+  UserInfoResponseSchema,
 } from "../schemas";
 
 // ============================================
@@ -84,15 +84,10 @@ export async function refreshAccessToken(
   return response.response;
 }
 
-/**
- * Get public user profile by muid
- */
-export async function fetchPublicUserProfile(
-  muid: string,
-): Promise<UserProfile> {
+export async function fetchUserInfo(): Promise<UserInfo> {
   const response = await apiClient.get(
-    endpoints.user.publicProfile(muid),
-    UserProfileResponseSchema,
+    endpoints.user.info,
+    UserInfoResponseSchema,
   );
   return response.response;
 }
