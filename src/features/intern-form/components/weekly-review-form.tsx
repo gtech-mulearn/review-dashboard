@@ -77,7 +77,11 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input {...field} readOnly className="bg-muted/50" />
+                    <Input
+                      {...field}
+                      readOnly
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -90,7 +94,11 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                 <FormItem>
                   <FormLabel>MUID</FormLabel>
                   <FormControl>
-                    <Input {...field} readOnly className="bg-muted/50" />
+                    <Input
+                      {...field}
+                      readOnly
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,7 +111,11 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input {...field} readOnly className="bg-muted/50" />
+                    <Input
+                      {...field}
+                      readOnly
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
