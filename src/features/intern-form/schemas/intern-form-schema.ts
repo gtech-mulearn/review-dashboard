@@ -20,19 +20,17 @@ export const weeklyReviewSchema = z.object({
   muid: z.string().min(1, "MUID is required"),
   email: z.string().email("Invalid email address"),
   team: z.string().min(1, "Team is required"),
-  tasksAssigned: z.string().optional(),
-  tasksCompleted: z.string().optional(),
-  worksDone: z.string().optional(),
+  tasksAssigned: z.string().min(1, "Tasks assigned are required"),
+  tasksCompleted: z.string().min(1, "Tasks completed are required"),
+  worksDone: z.string().min(1, "Works done are required"),
   hoursCommitted: z
     .string()
-    .optional()
     .refine(
       (val) => !val || (Number.isNaN(Number(val)) && Number(val) >= 0),
       "Hours must be a positive number",
     ),
-  blockers: z.string().optional(),
-  leaveDays: z.string().optional(),
-  weeklyReview: z.string().optional(),
+  blockers: z.string().min(1, "Blockers are required"),
+  leaveDays: z.string().min(1, "Leave days are required"),
 });
 
 // ============================================

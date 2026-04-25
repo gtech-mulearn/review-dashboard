@@ -57,7 +57,7 @@ export function LoginForm({
   });
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-3">
       <div className="flex justify-center mb-8">
         <Link href="/">
           <Image
@@ -137,23 +137,10 @@ export function LoginForm({
             )}
           />
 
-          {/* Links */}
-          <div className="flex items-center justify-between text-sm">
-            <Link
-              href="/forgot-password"
-              className="text-primary hover:underline"
-            >
-              Forgot password?
-            </Link>
-            {onSwitchToOTP && (
-              <button
-                type="button"
-                onClick={onSwitchToOTP}
-                className="text-primary hover:underline"
-              >
-                Login with OTP
-              </button>
-            )}
+          <div className="flex items-center justify-end text-sm">
+            <Button type="button" variant="link" onClick={onSwitchToOTP}>
+              Login with OTP
+            </Button>
           </div>
 
           {/* Primary Action Button */}

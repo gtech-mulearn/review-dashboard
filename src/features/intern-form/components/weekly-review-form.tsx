@@ -54,11 +54,10 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
       hoursCommitted: "",
       blockers: "",
       leaveDays: "",
-      weeklyReview: "",
     },
   });
 
-  const onSubmit = async (data: WeeklyReviewFormValues) => {
+  const onSubmit = async (_data: WeeklyReviewFormValues) => {
     form.reset();
     onSuccess?.();
   };
@@ -211,7 +210,7 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                   <FormControl>
                     <Input
                       {...field}
-                      type="number"
+                      type="text"
                       placeholder="Enter hours committed"
                     />
                   </FormControl>
@@ -245,7 +244,7 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Enter leave days taken..."
+                      placeholder="Enter leave dates comma separated (e.g., 25/04/2026, 26/04/2026). If none, say 'No leaves taken'..."
                       className="min-h-[80px] resize-none"
                     />
                   </FormControl>

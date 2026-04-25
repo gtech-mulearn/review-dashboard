@@ -1,5 +1,5 @@
 "use client";
-import { Copy, TrendingUp } from "lucide-react";
+import { Copy, Pencil, Trash, TrendingUp } from "lucide-react";
 import type { FC, ReactElement, ReactNode } from "react";
 import {
   useCallback,
@@ -9,8 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { Trash } from "lucide-react";
-import { Pencil } from "lucide-react";
 import Loader from "@/app/loading";
 import Modal from "./Modal";
 
