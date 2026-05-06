@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -47,6 +47,54 @@ const DEFAULT_TEAMS = [
   "Tech Team",
 ];
 
+function getMondayOfISOWeek(week: number, year: number): Date {
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dow = simple.getDay();
+  const dayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(simple);
+  monday.setDate(simple.getDate() + dayOffset);
+  return monday;
+}
+
+function getWeekDisplayString(week: number, year: number): string {
+  const monday = getMondayOfISOWeek(week, year);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const formatDate = (date: Date) =>
+    `${monthNames[date.getMonth()]} ${date.getDate()}`;
+
+  if (monday.getMonth() === sunday.getMonth()) {
+    const monthFullName = monday.toLocaleDateString("en-US", { month: "long" });
+    return `Week ${week}, ${monthFullName} ${monday.getFullYear()} (${formatDate(monday)}-${formatDate(sunday)})`;
+  } else {
+    return `Week ${week}, ${year} (${formatDate(monday)} - ${formatDate(sunday)})`;
+  }
+}
+
+function getNextSubmissionOpenTimestamp(week: number, year: number): number {
+  const currentWeekMonday = getMondayOfISOWeek(week, year);
+  const nextWeekMonday = new Date(currentWeekMonday);
+  nextWeekMonday.setDate(currentWeekMonday.getDate() + 7);
+  nextWeekMonday.setHours(0, 0, 0, 0);
+  return nextWeekMonday.getTime();
+}
+
 interface WeeklyReviewFormProps {
   onSuccess?: () => void;
 }
@@ -54,6 +102,13 @@ interface WeeklyReviewFormProps {
 export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
   const userProfile = useInternStore((state) => state.userProfile);
   const [teams] = useState<string[]>(DEFAULT_TEAMS);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const targetRef = useRef<number | null>(null);
 
   const { data: weekInfo, isLoading: isWeekLoading } = useCurrentWeek();
   const { data: isSubmitted, isLoading: isStatusLoading } = useSubmissionStatus(
@@ -106,7 +161,65 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
     });
   };
 
-  if (isWeekLoading || isStatusLoading) {
+  useEffect(() => {
+    // Only reset if explicitly false, not during loading (undefined)
+    if (isSubmitted === false) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      targetRef.current = null;
+      return;
+    }
+
+    if (isSubmitted === true) {
+      if (!weekInfo?.week || !weekInfo?.year) {
+        return;
+      }
+      targetRef.current = getNextSubmissionOpenTimestamp(
+        weekInfo.week,
+        weekInfo.year,
+      );
+
+      const calculateTimeLeft = (): void => {
+        if (!targetRef.current) return;
+        const now = Date.now();
+        const diff = targetRef.current - now;
+
+        if (diff <= 0) {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          return;
+        }
+
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((diff / (1000 * 60)) % 60),
+          seconds: Math.floor((diff / 1000) % 60),
+        });
+      };
+
+      calculateTimeLeft();
+      const timer = setInterval(calculateTimeLeft, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isSubmitted, weekInfo?.week, weekInfo?.year]);
+
+  if (
+    isWeekLoading ||
+    isStatusLoading ||
+    !userProfile?.muid ||
+    !weekInfo?.week ||
+    !weekInfo?.year
+  ) {
+    return (
+      <Card>
+        <CardContent className="p-8 flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isSubmitted === undefined) {
     return (
       <Card>
         <CardContent className="p-8 flex justify-center items-center">
@@ -126,9 +239,51 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
           <Alert className="bg-chart-2/10 text-chart-2 border-chart-2/20">
             <AlertTitle>Already Submitted</AlertTitle>
             <AlertDescription>
-              You have already submitted your review for Week {weekInfo?.week},{" "}
-              {weekInfo?.year}. Next submission opens next week (7 days from
-              now).
+              You have already submitted your review for{" "}
+              {getWeekDisplayString(
+                weekInfo?.week ?? 0,
+                weekInfo?.year ?? new Date().getFullYear(),
+              )}
+              .
+              <div className="mt-3">
+                <p className="text-sm opacity-80 mb-2">
+                  Next submission opens in:
+                </p>
+                <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
+                  <div className="bg-background/50 rounded-lg px-2 py-3">
+                    <div className="text-2xl font-mono font-bold tabular-nums text-primary">
+                      {String(timeLeft.days).padStart(2, "0")}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider opacity-70 font-medium">
+                      Days
+                    </div>
+                  </div>
+                  <div className="bg-background/50 rounded-lg px-2 py-3">
+                    <div className="text-2xl font-mono font-bold tabular-nums text-primary">
+                      {String(timeLeft.hours).padStart(2, "0")}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider opacity-70 font-medium">
+                      Hours
+                    </div>
+                  </div>
+                  <div className="bg-background/50 rounded-lg px-2 py-3">
+                    <div className="text-2xl font-mono font-bold tabular-nums text-primary">
+                      {String(timeLeft.minutes).padStart(2, "0")}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider opacity-70 font-medium">
+                      Mins
+                    </div>
+                  </div>
+                  <div className="bg-background/50 rounded-lg px-2 py-3">
+                    <div className="text-2xl font-mono font-bold tabular-nums text-primary">
+                      {String(timeLeft.seconds).padStart(2, "0")}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider opacity-70 font-medium">
+                      Secs
+                    </div>
+                  </div>
+                </div>
+              </div>
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -143,7 +298,7 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
           <h2 className="text-2xl font-semibold">Weekly Review Form</h2>
           {weekInfo && (
             <div className="bg-muted px-3 py-1 rounded-md text-sm font-medium">
-              Week {weekInfo.week}, {weekInfo.year}
+              {getWeekDisplayString(weekInfo.week, weekInfo.year)}
             </div>
           )}
         </div>
