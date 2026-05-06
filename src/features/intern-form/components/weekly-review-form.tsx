@@ -85,7 +85,11 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
 
   const onSubmit = async (data: WeeklyReviewFormValues) => {
     toast.loading("Submitting review...", { id: "submit-review" });
-    submitReview.mutate(data, {
+    const submitData = {
+      ...data,
+      leaveDays: data.isOnLeave ? "Leave for the whole week" : data.leaveDays,
+    };
+    submitReview.mutate(submitData, {
       onSuccess: () => {
         toast.success("Review submitted successfully!", {
           id: "submit-review",
@@ -349,23 +353,25 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
               </>
             )}
 
-            <FormField
-              control={form.control}
-              name="leaveDays"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leave Days</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Enter leave dates comma separated (e.g., 25/04/2026). If none, say 'No leaves taken'..."
-                      className="min-h-[80px] resize-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isOnLeave && (
+              <FormField
+                control={form.control}
+                name="leaveDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Leave Days</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Enter leave dates comma separated (e.g., 25/04/2026). If none, say 'No leaves taken'..."
+                        className="min-h-[80px] resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {submitReview.error && (
               <div className="text-sm font-medium text-destructive">
