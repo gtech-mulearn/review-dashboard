@@ -2,10 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,6 +37,12 @@ import {
   useSubmitReview,
 } from "../api/intern-form.hooks";
 import { type WeeklyReviewFormValues, weeklyReviewSchema } from "../schemas";
+import {
+  getMondayOfISOWeek,
+  getNextSubmissionOpenTimestamp,
+} from "../utils/date-utils";
+import { AlreadySubmitted } from "./AlreadySubmitted";
+import { WeekDisplay } from "./WeekDisplay";
 
 const DEFAULT_TEAMS = [
   "Web Dev",
@@ -47,6 +52,37 @@ const DEFAULT_TEAMS = [
   "Tech Team",
 ];
 
+function getWeekDisplayString(week: number, year: number): string {
+  const monday = getMondayOfISOWeek(week, year);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const formatDate = (date: Date) =>
+    `${monthNames[date.getMonth()]} ${date.getDate()}`;
+
+  if (monday.getMonth() === sunday.getMonth()) {
+    const monthFullName = monday.toLocaleDateString("en-US", { month: "long" });
+    return `Week ${week}, ${monthFullName} ${monday.getFullYear()} (${formatDate(monday)}-${formatDate(sunday)})`;
+  } else {
+    return `Week ${week}, ${year} (${formatDate(monday)} - ${formatDate(sunday)})`;
+  }
+}
+
 interface WeeklyReviewFormProps {
   onSuccess?: () => void;
 }
@@ -54,6 +90,13 @@ interface WeeklyReviewFormProps {
 export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
   const userProfile = useInternStore((state) => state.userProfile);
   const [teams] = useState<string[]>(DEFAULT_TEAMS);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const targetRef = useRef<number | null>(null);
 
   const { data: weekInfo, isLoading: isWeekLoading } = useCurrentWeek();
   const { data: isSubmitted, isLoading: isStatusLoading } = useSubmissionStatus(
@@ -63,6 +106,9 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
   );
 
   const submitReview = useSubmitReview();
+  const weekDisplayString = weekInfo
+    ? getWeekDisplayString(weekInfo.week, weekInfo.year)
+    : "";
 
   const form = useForm<WeeklyReviewFormValues>({
     resolver: zodResolver(weeklyReviewSchema),
@@ -85,7 +131,11 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
 
   const onSubmit = async (data: WeeklyReviewFormValues) => {
     toast.loading("Submitting review...", { id: "submit-review" });
-    submitReview.mutate(data, {
+    const submitData = {
+      ...data,
+      leaveDays: data.isOnLeave ? "Leave for the whole week" : data.leaveDays,
+    };
+    submitReview.mutate(submitData, {
       onSuccess: () => {
         toast.success("Review submitted successfully!", {
           id: "submit-review",
@@ -102,7 +152,61 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
     });
   };
 
-  if (isWeekLoading || isStatusLoading) {
+  useEffect(() => {
+    if (isSubmitted === false) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      targetRef.current = null;
+      return;
+    }
+
+    if (isSubmitted === true) {
+      if (!weekInfo?.week || !weekInfo?.year) return;
+      targetRef.current = getNextSubmissionOpenTimestamp(
+        weekInfo.week,
+        weekInfo.year,
+      );
+
+      const calculateTimeLeft = (): void => {
+        if (!targetRef.current) return;
+        const now = Date.now();
+        const diff = targetRef.current - now;
+
+        if (diff <= 0) {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          return;
+        }
+
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((diff / (1000 * 60)) % 60),
+          seconds: Math.floor((diff / 1000) % 60),
+        });
+      };
+
+      calculateTimeLeft();
+      const timer = setInterval(calculateTimeLeft, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isSubmitted, weekInfo?.week, weekInfo?.year]);
+
+  if (
+    isWeekLoading ||
+    isStatusLoading ||
+    !userProfile?.muid ||
+    !weekInfo?.week ||
+    !weekInfo?.year
+  ) {
+    return (
+      <Card>
+        <CardContent className="p-8 flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isSubmitted === undefined) {
     return (
       <Card>
         <CardContent className="p-8 flex justify-center items-center">
@@ -114,21 +218,12 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
 
   if (isSubmitted) {
     return (
-      <Card>
-        <CardHeader className="text-2xl font-semibold">
-          Weekly Review Form
-        </CardHeader>
-        <CardContent>
-          <Alert className="bg-chart-2/10 text-chart-2 border-chart-2/20">
-            <AlertTitle>Already Submitted</AlertTitle>
-            <AlertDescription>
-              You have already submitted your review for Week {weekInfo?.week},{" "}
-              {weekInfo?.year}. Next submission opens next week (7 days from
-              now).
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+      <AlreadySubmitted
+        week={weekInfo.week}
+        year={weekInfo.year}
+        getWeekDisplayString={getWeekDisplayString}
+        timeLeft={timeLeft}
+      />
     );
   }
 
@@ -137,11 +232,7 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
       <CardHeader>
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Weekly Review Form</h2>
-          {weekInfo && (
-            <div className="bg-muted px-3 py-1 rounded-md text-sm font-medium">
-              Week {weekInfo.week}, {weekInfo.year}
-            </div>
-          )}
+          {weekInfo && <WeekDisplay weekString={weekDisplayString} />}
         </div>
         <CardDescription>
           Submit your progress for the current ISO week.
@@ -243,7 +334,7 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
                   <FormControl>
                     <Input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary mt-0.5"
                       checked={field.value}
                       onChange={field.onChange}
                     />
@@ -349,23 +440,25 @@ export function WeeklyReviewForm({ onSuccess }: WeeklyReviewFormProps) {
               </>
             )}
 
-            <FormField
-              control={form.control}
-              name="leaveDays"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leave Days</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Enter leave dates comma separated (e.g., 25/04/2026). If none, say 'No leaves taken'..."
-                      className="min-h-[80px] resize-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isOnLeave && (
+              <FormField
+                control={form.control}
+                name="leaveDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Leave Days</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Enter leave dates comma separated (e.g., 25/04/2026). If none, say 'No leaves taken'..."
+                        className="min-h-[80px] resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {submitReview.error && (
               <div className="text-sm font-medium text-destructive">

@@ -8,16 +8,6 @@ import TableTop from "@/components/layout/table/TableTop";
 import THead from "@/components/layout/table/Thead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -27,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAllResponses } from "@/features/intern-form/api/intern-form.hooks";
+import { GenerateIndividualDialog } from "./components/GenerateIndividualDialog";
+import { GenerateTeamDialog } from "./components/GenerateTeamDialog";
 
 export default function WeeklyReportGeneratorPage() {
   const router = useRouter();
@@ -36,19 +28,13 @@ export default function WeeklyReportGeneratorPage() {
   const [page, setPage] = useState(1);
   const [teamFilter, setTeamFilter] = useState("ALL");
 
-  // Dialog states
-  const [individualMuid, setIndividualMuid] = useState("");
-  const [teamName, setTeamName] = useState("");
-
-  const handleGenerateIndividual = () => {
-    if (!individualMuid) return;
+  const handleGenerateIndividual = (muid: string) => {
     router.push(
-      `/dashboard/admin/weekly-report-generator/individual?muid=${individualMuid}`,
+      `/dashboard/admin/weekly-report-generator/individual?muid=${muid}`,
     );
   };
 
-  const handleGenerateTeam = () => {
-    if (!teamName) return;
+  const handleGenerateTeam = (teamName: string) => {
     router.push(
       `/dashboard/admin/weekly-report-generator/team?team=${teamName}`,
     );
@@ -95,72 +81,9 @@ export default function WeeklyReportGeneratorPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  Generate Individual Report
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Generate Individual Report</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="muid">Intern MUID</Label>
-                    <Input
-                      id="muid"
-                      placeholder="e.g. dev-1234"
-                      value={individualMuid}
-                      onChange={(e) => setIndividualMuid(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button
-                    onClick={handleGenerateIndividual}
-                    disabled={!individualMuid}
-                  >
-                    Generate
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <GenerateIndividualDialog onGenerate={handleGenerateIndividual} />
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  Generate Team Report
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Generate Team Report</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="team">Team Name</Label>
-                    <Input
-                      id="team"
-                      placeholder="e.g. Frontend"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button onClick={handleGenerateTeam} disabled={!teamName}>
-                    Generate
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <GenerateTeamDialog onGenerate={handleGenerateTeam} />
           </div>
         </CardHeader>
         <CardContent>
